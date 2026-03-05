@@ -1,0 +1,65 @@
+package templates
+
+import "iter"
+
+templ StreamingPage(
+	myData1, myData2, myData3 func() string,
+	mySeq iter.Seq[func() string],
+	myError func() (string, error)) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+			<link rel="stylesheet" href="/static/style.css">
+			<script defer crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+			<script defer crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+			<script defer crossorigin src="https://unpkg.com/@tanstack/react-query@4.13.4/build/umd/index.production.js"></script>
+		</head>
+		<body>
+			<div class="heroBanner"><img src="/static/super_hero.webp" /></div>
+
+			<section>
+				<div>My page!</div>
+				<br />
+
+				<div>Getting data...</div>
+				<br>
+				
+				@await() {
+					<div>{ myData1() }</div>
+				}
+				@await() {
+					<div>{ myData2() }</div>
+				}
+
+				<br>
+
+				for data := range mySeq {
+					@await() {
+						<div>{ data() }</div>
+					}
+				}
+
+				<br>
+
+				@awaitFallible("<div>Failed to render this section</div>") {
+					<div>{ myData3() }</div>
+					<div>{ myError() }</div>
+				}
+				@awaitFallible(fancyErrorFallback("Failed to render this section as well")) {
+					<div>{ myData3() }</div>
+					<div>{ myError() }</div>
+				}
+
+				<br />
+				<div>Finished</div>
+			</section>
+		</body>
+	</html>
+}
+
+templ fancyErrorFallback(errorText string) {
+	<div style="border: 1px solid red; display: table; padding: 0.1em;">
+		{ errorText }
+	</div>
+}
